@@ -1,11 +1,9 @@
-version: '3.8'
-
 services:
   web:
     build:
       context: .
       dockerfile: docker/Dockerfile
-    platform: linux/arm64
+    # platform: linux/arm64
     ports:
       - "8080:8080"
     volumes:
@@ -23,7 +21,7 @@ services:
 
   redis:
     image: arm64v8/redis:alpine
-    platform: linux/arm64
+    # platform: linux/arm64
     ports:
       - "6379:6379"
     volumes:
@@ -31,7 +29,7 @@ services:
 
   tesseract:
     image: arm64v8/ubuntu:20.04
-    platform: linux/arm64
+    # platform: linux/arm64
     volumes:
       - ./uploads:/uploads
     command: >
@@ -43,7 +41,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.worker
-    platform: linux/arm64
+    # platform: linux/arm64
     volumes:
       - ./app:/app
       - ./config:/config

@@ -1,5 +1,4 @@
-FROM --platform=linux/arm64 python:3.9-slim
-
+# FROM --platform=linux/arm64 python:3.9-slim
 WORKDIR /
 
 # Install system dependencies

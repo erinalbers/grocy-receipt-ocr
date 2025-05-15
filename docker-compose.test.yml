@@ -1,11 +1,9 @@
-version: '3.8'
-
 services:
   test:
     build:
       context: .
       dockerfile: docker/Dockerfile.test
-    platform: linux/arm64
+    # platform: linux/arm64
     volumes:
       - ./app:/app
       - ./tests:/tests
