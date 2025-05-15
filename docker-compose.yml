@@ -29,7 +29,7 @@ services:
       - ./redis-data:/data
 
   tesseract:
-    image: ghcr.io/tesseract-ocr/tesseract4
+    image: tesseractshadow/tesseract4re
     platform: linux/amd64
     # platform: linux/arm64
     volumes:
