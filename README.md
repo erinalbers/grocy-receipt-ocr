@@ -33,7 +33,7 @@ A tool to automatically process grocery receipts, extract product information us
 
 1. Clone this repository:
    ```
-   git clone https://github.com/yourusername/grocy-receipt-ocr.git
+   git clone https://github.com/erinalbers/grocy-receipt-ocr.git
    cd grocy-receipt-ocr
    ```
 
@@ -43,12 +43,17 @@ A tool to automatically process grocery receipts, extract product information us
    GROCY_API_KEY=your-api-key
    ```
 
-3. Start the application:
+3. Copy the Category Mappings:
+   ```
+   cp config/category_mappings.example.json config/category_mappings.json
+   ```
+
+4. Start the application:
    ```
    docker-compose up -d
    ```
 
-4. Access the web interface at `http://localhost:8080`
+5. Access the web interface at `http://localhost:8080`
 
 ## Configuration
 
