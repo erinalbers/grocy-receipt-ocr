@@ -211,19 +211,55 @@ def create_product():
     
     # Map store category to Grocy category if available
     logger.info(f"Data: {data}")
+    product_id = data.get('product_id',None)
+    barcode = data.get('barcode', '')
+    if product_id is not None and product_id != "":
+        grocy_product = grocy_client.get_product(data['product_id'])
+        if grocy_product:
+            assignments = {
+                "display_amount": data.get('display_amount',1),
+                "qu_id": data.get('qu_id',None),
+                "note": data.get('name', ''),
+                'store': data.get('store', ''),
+            }
+            logger.info(f"Assignments: {assignments}")
+            result = grocy_client.add_barcode_to_product(product_id, barcode, assignments)
+    else:
+        # Create product in Grocy
+        product_data = {
+            'name': data['name'],
+            'barcode': data.get('barcode', ''),
+            'product_group_id': data.get('category'),
+            'location_id': data.get('location'),
+            'qu_id_purchase': data.get('qu_id_purchase'),
+            'qu_id_stock': data.get('qu_id_stock'),
+            'store': data.get('store', ''),
+        }
+        logger.info(f"Creating product: {product_data}")
+        result = grocy_client.create_product(product_data)
+    
+    return jsonify(result)
 
-    # Create product in Grocy
-    product_data = {
-        'name': data['name'],
-        'barcode': data.get('barcode', ''),
-        'product_group_id': data.get('category'),
-        'location_id': data.get('location'),
-        'qu_id_purchase': data.get('qu_id_purchase'),
-        'qu_id_stock': data.get('qu_id_stock'),
-        'store': data.get('location', ''),
-    }
-    logger.info(f"Creating product: {product_data}")
-    result = grocy_client.create_product(product_data)
+@app.route('/lookup-product', methods=['POST'])
+def lookup_product():
+    data = request.json
+    
+    barcode = data.get('barcode', '')
+    logger.info(f"Data: {data}")
+
+    logger.info(f"Looking up product: {barcode}")
+    result = grocy_client.external_lookup(barcode)
+    
+    return jsonify(result)
+
+@app.route('/products-for-group/<product_group_id>', methods=['POST'])
+def products_for_group(product_group_id):
+    data = request.json
+    
+    logger.info(f"Data: {data}")
+
+    logger.info(f"Looking up product: {product_group_id}")
+    result = grocy_client.products_for_group(product_group_id)
     
     return jsonify(result)
 

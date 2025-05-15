@@ -66,6 +66,33 @@ class GrocyClient:
         except Exception as e:
             print(f"Error finding product by barcode: {e}")
             return None
+        
+    def products_for_group(self, product_group_id):
+        """
+        Find a product by group id
+        
+        Args:
+            product_group_id: Product group id
+            
+        Returns:
+            Product list if found, [] otherwise
+        """
+
+        logger.info(f"Finding product by group: {product_group_id}")
+        url = f"{self.api_url}/objects/products?query%5B%5D=product_group_id%3D{product_group_id}&order=name%3Aasc"
+        
+        try:
+            response = requests.get(url, headers=self.headers)
+            response.raise_for_status()
+            
+            products = response.json()
+            if products:
+                return products
+            
+            return []
+        except Exception as e:
+            print(f"Error finding product by group: {e}")
+            return []
     
     def get_product_categories(self):
         """
@@ -129,6 +156,24 @@ class GrocyClient:
             List of quantity_units
         """
         url = f"{self.api_url}/objects/shopping_locations"
+        
+        try:
+            response = requests.get(url, headers=self.headers)
+            response.raise_for_status()
+            
+            return response.json()
+        except Exception as e:
+            print(f"Error getting product quantity_units: {e}")
+            return []
+        
+    def external_lookup(self, barcode: str):
+        """
+        Get all quantity_units
+        
+        Returns:
+            List of quantity_units
+        """
+        url = f"{self.api_url}/stock/barcodes/external-lookup/{barcode}"
         
         try:
             response = requests.get(url, headers=self.headers)
@@ -202,7 +247,11 @@ class GrocyClient:
             logger.info(f"Product ID: {product_id}")
             logger.info(f"Product Barcode: {barcode}")
             if barcode:
-                barcode_response = self.add_barcode_to_product(product_id, barcode, product_data)
+                assignments = {
+                    'note': product_data['name']
+                }
+                logger.info(f"Assignments: {assignments}")
+                barcode_response = self.add_barcode_to_product(product_id, barcode, assignments)
                 if 'error' in barcode_response:
                     return {'error': barcode_response['error']}
 
@@ -211,7 +260,7 @@ class GrocyClient:
         return None
 
         
-    def add_barcode_to_product(self, product_id, barcode, product_data):
+    def add_barcode_to_product(self, product_id, barcode, assignments ):
         """
         Add barcode to a product
 
@@ -226,12 +275,16 @@ class GrocyClient:
 
         standardized_barcode = self.normalize_receipt_barcode(barcode)
         # Prepare barcode data for Grocy API
+        
+        # {"amount": "8", "qu_id": "9", "note": "AVOCADO, BAG", "shopping_location_id": "","product_id":33,"barcode":234234}
         grocy_barcode = {
-            'note': product_data.get('name'),
+            'shopping_location_id': assignments.get('shopping_location_id',''),
+            'note': assignments.get('note',''),
             'barcode': standardized_barcode,
             'product_id': product_id,
-            'amount': 1,  # Default quantity unit
+            'amount': assignments.get('display_amount',1),  # Default quantity unit
         }
+        logger.info(f"Barcode request: {grocy_barcode}")
 
         try:
             response = requests.post(
@@ -246,6 +299,7 @@ class GrocyClient:
         except Exception as e:
             print(f"Error adding barcode to product: {e}")
             return {'error': str(e)}
+        
     
     def get_product(self, product_id):
         """

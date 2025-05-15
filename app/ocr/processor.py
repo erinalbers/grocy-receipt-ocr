@@ -163,6 +163,8 @@ def parse_receipt(text):
         products = parse_safeway_receipt(text)
     elif store == "Kroger":
         products = parse_kroger_receipt(text)
+    elif store == "WinCo":
+        products = parse_winco_receipt(text)
     else:
         # Generic parsing
         products = parse_generic_receipt(text)
@@ -193,6 +195,10 @@ def detect_store(text):
         return "Walmart"
     elif "target" in text_lower:
         return "Target"
+    elif "winco" in text_lower:
+        return "WinCo"
+    elif "petco" in text_lower:
+        return "PetCo"
     else:
         return "Unknown"
 
@@ -200,6 +206,57 @@ def get_category_mappings_for_store(store):
     with open('/config/category_mappings.json', 'r') as f:
         category_mappings = json.load(f)
     return category_mappings.get(store, {})
+
+def parse_winco_receipt(text):
+    products = []
+    lines = text.split('\n')
+    logger.info(f"Processing {len(lines)} lines")
+    for i, line in enumerate(lines):
+        # Look for lines with price patterns
+        line = clean_line(line)
+
+        logger.info(f"Line {i}: {line}")
+
+        if len(line) > 3:
+                
+            product_match = re.search(r'^(.*)\s+(\d+)\s+(\d*[\.\,]{1}\d{2})\s*[\S]{0,2}$', line)
+            if product_match:
+                # Extract price
+                price_str = product_match.group(3)
+                try:
+                    price = float(price_str)
+                except ValueError:
+                    logger.info(f"Invalid price: {price_str}")
+                    continue
+                
+                # Extract product name (text before the price)
+                product_name = product_match.group(1)
+                
+                # Skip if product name is too short or empty
+                if len(product_name) < 3:
+                    continue
+                
+                # Look for barcode in adjacent lines
+                barcode = product_match.group(2)
+                
+                logger.info({
+                    'name': product_name,
+                    'price': price,
+                    'barcode': barcode,
+                    'category': None,
+                    'store': 'Safeway',
+                })
+
+                products.append({
+                    'name': product_name,
+                    'price': price,
+                    'barcode': barcode,
+                    'category': None,
+                    'store': 'Safeway',
+                })
+    
+    return products
+
 
 def parse_safeway_receipt(text):
     """
@@ -216,8 +273,6 @@ def parse_safeway_receipt(text):
     text = remove_header_footer(text, False, False)
     # Split text into lines
     lines = text.split('\n')
-
-    
     logger.info(f"Processing {len(lines)} lines")
 
     current_category = ""
