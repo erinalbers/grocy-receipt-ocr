@@ -1,0 +1,19 @@
+{
+  "Safeway": {
+    "REFRIG/FROZEN": "Frozen Foods",
+    "PRODUCE": "Fruits & Vegetables",
+    "MEAT": "Meat",
+    "DAIRY": "Refrigerated Goods",
+    "BAKED GOODS": "Bakery",
+    "GROCERY": "Dry Goods",
+    "DELI": "Refrigerated Goods",
+    "LIQUOR": "Beverages",
+    "SNACKS": "Snacks"
+  },
+  "Kroger": {
+    "FROZEN": "Refrigerated Foods",
+    "PRODUCE": "Fruits & Vegetables",
+    "MEAT": "Meat",
+    "DAIRY": "Dairy"
+  }
+}

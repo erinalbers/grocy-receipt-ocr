@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Products - Grocy Receipt OCR</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        .product-card {
+            margin-bottom: 1rem;
+            border-left: 4px solid #ccc;
+        }
+        .product-card.in-grocy {
+            border-left-color: #28a745;
+        }
+        .product-card.not-in-grocy {
+            border-left-color: #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-6">Review Products</h1>
+        
+        <div class="mb-4">
+            <div class="alert alert-info">
+                <h4 class="alert-heading">Instructions</h4>
+                <p>Review the products extracted from your receipt. For products not found in your Grocy database, you can:</p>
+                <ul>
+                    <li>Create the product in Grocy</li>
+                    <li>Skip the product if you don't want to add it</li>
+                </ul>
+                <p class="mb-0">Once all products are processed, click "Continue to Purchases" to add the items to your inventory.</p>
+            </div>
+        </div>
+        
+        <div class="row mb-4">
+            <div class="col">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2 class="h4">Products ({{ products|length }})</h2>
+                    <button id="continue-btn" class="btn btn-primary" disabled>Continue to Purchases</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="products-container">
+            {% for product in products %}
+            <div class="card product-card {% if product.in_grocy %}in-grocy{% else %}not-in-grocy{% endif %}" data-product-id="{{ loop.index }}">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text">
+                                {% if product.price %}
+                                <span class="badge bg-secondary">${{ product.price }}</span>
+                                {% endif %}
+                                {% if product.category %}
+                                <span class="badge bg-info text-dark">{{ product.category }}</span>
+                                {% endif %}
+                                {% if product.barcode %}
+                                <span class="badge bg-dark">Barcode: {{ product.barcode }}</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            {% if product.in_grocy %}
+                            <span class="badge bg-success mb-2">In Grocy</span>
+                            {% else %}
+                            <span class="badge bg-warning text-dark mb-2">Not in Grocy</span>
+                            <div class="btn-group w-100">
+                                <button class="btn btn-sm btn-outline-primary create-product-btn" 
+                                        data-product-name="{{ product.name }}"
+                                        data-product-barcode="{{ product.barcode }}"
+                                        data-product-category="{{ product.category }}"
+                                        data-product-store="{{ product.store }}">
+                                    Create in Grocy
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary skip-product-btn">
+                                    Skip
+                                </button>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Modal for creating product -->
+    <div class="modal fade" id="createProductModal" tabindex="-1" aria-labelledby="createProductModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createProductModalLabel">Create Product in Grocy</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="create-product-form">
+                        <div class="mb-3">
+                            <label for="product-name" class="form-label">Product Name</label>
+                            <input type="text" class="form-control" id="product-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="product-barcode" class="form-label">Barcode</label>
+                            <input type="text" class="form-control" id="product-barcode">
+                        </div>
+                        <div class="mb-3">
+                            <label>What type of product is this?</label>
+                            <select class="form-control" name="category" id="product-category">
+                                {% for category in categories %}
+                                <option value="{{ category.id }}" title="{{ category.name }}"> 
+                                {{ category.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label>Where is this going to live before it is opened?</label>
+                            <select class="form-control" name="location" id="product-location">
+                            {% for location in locations %}
+                                <option value="{{ location.id }}" title="{{ location.name }}"> 
+                                {{ location.name }}
+                                </option>
+                            {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label>Stock Quantity Unit</label>
+                            <p>How do you think about how many units you have on hand? Do you have 6 cans? Or 32 ounces?</p>
+                            <select class="form-control" name="qu_id_stock" id="product-stock">
+                                {% for quantity_unit in quantity_units %}
+                                <option value="{{ quantity_unit.id }}" title="{{ quantity_unit.name }}"> 
+                                {{ quantity_unit.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label>Purchase Quantity Unit</label>
+                            <p>What do you want the shopping list to say? For example, you aren't going to purchase a single beer, you're going to purchase a pack.</p>
+                            <select class="form-control" name="qu_id_purchase" id="product-purchase">
+                                {% for quantity_unit in quantity_units %}
+                                <option value="{{ quantity_unit.id }}" title="{{ quantity_unit.name }}"> 
+                                {{ quantity_unit.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="save-product-btn">Create Product</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const jobId = "{{ job_id }}";
+            const productsContainer = document.getElementById('products-container');
+            const continueBtn = document.getElementById('continue-btn');
+            const createProductModal = new bootstrap.Modal(document.getElementById('createProductModal'));
+            
+            let currentProductCard = null;
+            
+            // Check if all products are processed
+            function checkAllProcessed() {
+                const notProcessed = document.querySelectorAll('.product-card.not-in-grocy:not(.processed)');
+                if (notProcessed.length === 0) {
+                    continueBtn.disabled = false;
+                }
+            }
+            
+            // Initialize
+            checkAllProcessed();
+            
+            // Continue to purchases
+            continueBtn.addEventListener('click', function() {
+                window.location.href = `/purchases/${jobId}`;
+            });
+            
+            // Create product button click
+            document.querySelectorAll('.create-product-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    currentProductCard = this.closest('.product-card');
+                    
+                    // Fill modal with product data
+                    document.getElementById('product-name').value = this.dataset.productName;
+                    document.getElementById('product-barcode').value = this.dataset.productBarcode || '';
+                    document.getElementById('product-category').value = this.dataset.productCategory || '';
+
+                    createProductModal.show();
+                });
+            });
+            
+            // Skip product button click
+            document.querySelectorAll('.skip-product-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const productCard = this.closest('.product-card');
+                    productCard.classList.add('processed');
+                    productCard.style.opacity = '0.5';
+                    
+                    // Replace buttons with "Skipped" badge
+                    const btnGroup = this.closest('.btn-group');
+                    btnGroup.innerHTML = '<span class="badge bg-secondary">Skipped</span>';
+                    
+                    checkAllProcessed();
+                });
+            });
+            
+            // Save product button click
+            document.getElementById('save-product-btn').addEventListener('click', function() {
+                var productName = document.getElementById('product-name').value;
+                var productBarcode = document.getElementById('product-barcode').value;
+                var productCategory = document.getElementById('product-category').value;
+                var productStockQuantity = document.getElementById('product-stock').value;
+                var productPurchaseQuantity = document.getElementById('product-purchase').value;
+                var productLocation = document.getElementById('product-location').value;
+                
+                console.log({
+                        name: productName,
+                        barcode: productBarcode,
+                        category: productCategory,
+                        location: productLocation,
+                        qu_id_stock: productStockQuantity,
+                        qu_id_purchase: productPurchaseQuantity,
+                        store: currentProductCard.querySelector('.create-product-btn').dataset.productStore
+                    })
+                // Create product in Grocy
+                fetch('/create-product', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: productName,
+                        barcode: productBarcode,
+                        category: productCategory,
+                        location: productLocation,
+                        qu_id_stock: productStockQuantity,
+                        qu_id_purchase: productPurchaseQuantity,
+                        store: currentProductCard.querySelector('.create-product-btn').dataset.productStore
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Update UI
+                    currentProductCard.classList.remove('not-in-grocy');
+                    currentProductCard.classList.add('in-grocy', 'processed');
+                    currentProductCard.querySelector('.badge.bg-warning').className = 'badge bg-success mb-2';
+                    currentProductCard.querySelector('.badge.bg-success').textContent = 'In Grocy';
+                    
+                    // Replace buttons with "Added" badge
+                    const btnGroup = currentProductCard.querySelector('.btn-group');
+                    btnGroup.innerHTML = '<span class="badge bg-success">Added to Grocy</span>';
+                    
+                    // Store Grocy product ID
+                    if (data.id) {
+                        currentProductCard.dataset.grocyId = data.id;
+                    }
+                    
+                    createProductModal.hide();
+                    checkAllProcessed();
+                })
+                .catch(error => {
+                    console.error('Error creating product:', error);
+                    alert('Error creating product. Please try again.');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

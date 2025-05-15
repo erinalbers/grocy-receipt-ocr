@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    platform: linux/arm64
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./app:/app
+      - ./logs:/logs
+      - ./config:/config
+      - ./uploads:/uploads
+    environment:
+      - GROCY_API_URL=${GROCY_API_URL}
+      - GROCY_API_KEY=${GROCY_API_KEY}
+      - USE_QUEUE=${USE_QUEUE}
+    depends_on:
+      - redis
+      - tesseract
+
+  redis:
+    image: arm64v8/redis:alpine
+    platform: linux/arm64
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis-data:/data
+
+  tesseract:
+    image: arm64v8/ubuntu:20.04
+    platform: linux/arm64
+    volumes:
+      - ./uploads:/uploads
+    command: >
+      bash -c "apt-get update && 
+      apt-get install -y tesseract-ocr libtesseract-dev && 
+      tail -f /dev/null"  # Keep container running
+
+  worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+    platform: linux/arm64
+    volumes:
+      - ./app:/app
+      - ./config:/config
+      - ./uploads:/uploads
+    environment:
+      - GROCY_API_URL=${GROCY_API_URL}
+      - GROCY_API_KEY=${GROCY_API_KEY}
+    depends_on:
+      - redis
+      - tesseract
+
+volumes:
+  redis-data:

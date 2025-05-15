@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grocy Receipt OCR</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        .product-card {
+            margin-bottom: 1rem;
+            border-left: 4px solid #ccc;
+        }
+        .product-card.in-grocy {
+            border-left-color: #28a745;
+        }
+        .product-card.not-in-grocy {
+            border-left-color: #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-6">Grocy Receipt OCR</h1>
+        <div class="mb-4">
+            <form method="post">
+
+                <div class="alert alert-info">
+                    <h4 class="alert-heading">Instructions</h4>
+                    <p>Clean up any characters that didn't get interpreted correctly. The numbers 8,9 and 6 in particular can be tricky.</p>
+                </div>
+                {% if ocr_data %}
+                <label for="ocr" class="form-label">Preview OCR Data</label>
+                <p><textarea class="form-control" id="ocr" name="ocr_data" rows=20 required style="white-space: pre-wrap; font-family: monospace;">{{ ocr_data }}</textarea>{% 
+                    else 
+                    %}<textarea class="form-control" id="ocr" name="ocr_data" rows=20 required style="white-space: pre-wrap; font-family: monospace;">No OCR data available.</textarea>{% endif %}
+                </p>
+            
+                <button type="submit" class="btn btn-primary w-100">Save and Process</button>
+            </form>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  test:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.test
+    platform: linux/arm64
+    volumes:
+      - ./app:/app
+      - ./tests:/tests
+      - ./config:/config
+    environment:
+      - PYTHONPATH=/
+      - GROCY_API_URL=https://test-grocy-instance/api
+      - GROCY_API_KEY=test-api-key
+    command: python /run_tests.py

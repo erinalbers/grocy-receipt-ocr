@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processing Receipt - Grocy Receipt OCR</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 2rem;
+        }
+        .processing-container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 2rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">Grocy Receipt OCR</h1>
+        
+        <div class="processing-container">
+            <div class="spinner-border text-primary mb-3" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            
+            <h2 class="h4 mb-3">Processing Receipt</h2>
+            <p class="mb-3">Please wait while we process your receipt...</p>
+            <p id="status-message">Extracting text from receipt...</p>
+            
+            <div class="progress mb-3">
+                <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 25%"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Poll for job status
+        const jobId = "{{ job_id }}";
+        let progressValue = 25;
+        
+        function updateProgress() {
+            progressValue = Math.min(progressValue + 5, 90);
+            document.getElementById('progress-bar').style.width = progressValue + '%';
+        }
+        
+        function checkStatus() {
+            fetch(`/job-status/${jobId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'finished') {
+                        document.getElementById('progress-bar').style.width = '100%';
+                        document.getElementById('status-message').textContent = 'Processing complete! Redirecting...';
+                        setTimeout(() => {
+                            window.location.href = `/ocr/${jobId}`;
+                        }, 1000);
+                    } else if (data.status === 'failed') {
+                        document.getElementById('status-message').textContent = 'Error processing receipt. Please try again.';
+                    } else {
+                        updateProgress();
+                        setTimeout(checkStatus, 1000);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking job status:', error);
+                    document.getElementById('status-message').textContent = 'Error checking status. Please refresh the page.';
+                });
+        }
+        
+        // Start polling
+        setTimeout(checkStatus, 1000);
+    </script>
+</body>
+</html>

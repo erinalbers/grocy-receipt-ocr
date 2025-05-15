@@ -1,0 +1,124 @@
+# Environment variables
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Uploads
+uploads
+uploads/*
+!uploads/.gitkeep
+
+config/category_mappings.json
+redis-data/*
+
+# Logs
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+.eggs/
+dist/
+build/
+develop-eggs/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.whl
+*.tar.gz
+*.zip
+
+# Environments
+.venv/
+venv/
+env/
+ENV/
+
+# Example in .gitignore
+__pycache__/
+*.pyc
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  to the current dir.
+# *.spec
+# _MEIPASS*
+#
+# # bdist_wininst
+# # Used by the bdist_wininst standard library module and PyInstaller
+# # __pycache__/
+# # *.pyc
+# # *.pyo
+# # *.pyd
+#
+# # Compiled source #
+# *.com
+# *.exe
+# *.dll
+# *.so
+# *.dylib
+#
+# # C extensions extension
+# *.so
+# # Packages
+# # *.egg
+# # *.egg-info
+# # *.whl
+#
+# # Logs and databases
+# *.log
+# *.sql
+# *.sqlite
+# *.db
+#
+# # OS generated files
+# .DS_Store
+# Thumbs.db
+#
+# # IDEs and editors
+# .idea/
+# *.swp
+# *.swo
+# *.bak
+# *.tmp
+# *.vscode/

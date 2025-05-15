@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Purchases - Grocy Receipt OCR</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        .product-card {
+            margin-bottom: 1rem;
+            border-left: 4px solid #0d6efd;
+        }
+        .product-card.added {
+            border-left-color: #28a745;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">Add Purchases to Grocy</h1>
+        
+        <div class="mb-4">
+            <div class="alert alert-info">
+                <h4 class="alert-heading">Instructions</h4>
+                <p>Review the products and add them to your Grocy inventory:</p>
+                <ul>
+                    <li>Adjust quantities if needed</li>
+                    <li>Click "Add Purchase" for each item</li>
+                    <li>All prices are pre-populated from your receipt, but you may want to confirm that OCR read correctly.</li>
+                </ul>
+                <p class="mb-0">Once you're done, click "Finish" to return to the home page.</p>
+            </div>
+        </div>
+        
+        <div class="row mb-4">
+            <div class="col">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2 class="h4">Products to Add ({{ products|length }})</h2>
+                    <a href="/" class="btn btn-primary">Finish</a>
+                </div>
+            </div>
+        </div>
+        
+        <div id="products-container">
+            {% for product_set in products %}
+            <div class="card product-card" data-product-id="{{ product_set.product.id }}">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h5 class="card-title"><a href="{{ product_set.product['url'] }}" target="_blank" class="link-secondary link-underline-opacity-25">{{ product_set.product.name }} </a></h5>
+                            <p class="card-text">
+                                {% if product_set.price %}
+                                <span class="badge bg-secondary">${{ "%.2f"|format(product_set.price) }}</span>
+                                {% endif %}
+                                {% if product_set.product.category %}
+                                <span class="badge bg-info text-dark">{{ product_set.product.category }}</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-8">
+                            <form class="purchase-form row g-3">
+                                <div class="col-md-3">
+                                    <label for="quantity-{{ loop.index }}" class="form-label">Quantity <span class="small">({{ product_set.default_quantity_unit_purchase.name }})</span></label>
+                                    <input type="number" class="form-control form-control-sm quantity-input" 
+                                           id="quantity-{{ loop.index }}" value="1" min="0.01" step="0.01">
+                                           
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="expiring-{{ loop.index }}" class="form-label">Days 'til expired</label>
+                                    <input type="number" class="form-control form-control-sm expiring-input" 
+                                           id="expiring-{{ loop.index }}" value="{{ product_set.get('product', {}).get('default_best_before_days',10) }}" min="-1" step="1">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="price-{{ loop.index }}" class="form-label">Price</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control price-input" 
+                                               id="price-{{ loop.index }}" value="{{ "%.2f"|format(product_set.price) }}" min="0" step="0.01">
+                                    </div>
+                                </div>
+                                <input type="hidden" class="form-control store-input" value="{{ product_set.shopping_location_id }}"/>
+                                
+                                <div class="col-md-3 d-flex align-items-end button-container">
+                                    <button type="button" class="btn btn-sm btn-success w-100 add-purchase-btn">
+                                        Add Purchase
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const productsContainer = document.getElementById('products-container');
+            
+            // Add purchase button click
+            document.querySelectorAll('.add-purchase-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const productCard = this.closest('.product-card');
+                    const productId = productCard.dataset.productId;
+                    const quantityInput = productCard.querySelector('.quantity-input');
+                    const priceInput = productCard.querySelector('.price-input');
+                    const expiringInput = productCard.querySelector('.expiring-input');
+                    const storeInput = productCard.querySelector('.store-input');
+                    
+                    // Add purchase in Grocy
+                    fetch('/add-purchase', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            shopping_location_id: productId,
+                            product_id: productId,
+                            amount: parseFloat(quantityInput.value),
+                            price: parseFloat(priceInput.value),
+                            days_out: parseFloat(expiringInput.value),
+                            shopping_location_id: parseFloat(storeInput.value),
+                        }),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Update UI
+                        productCard.classList.add('added');
+                        
+                        // Replace button with "Added" badge
+                        const btnContainer = this.closest('.button-container');
+                        btnContainer.innerHTML = '<span class="badge bg-success w-100 p-2">Added to Inventory</span>';
+                        
+                        // Disable inputs
+                        quantityInput.disabled = true;
+                        priceInput.disabled = true;
+                    })
+                    .catch(error => {
+                        console.error('Error adding purchase:', error);
+                        alert('Error adding purchase. Please try again.');
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>

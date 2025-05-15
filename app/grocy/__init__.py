@@ -1,0 +1,1 @@
+# Grocy integration package initialization
