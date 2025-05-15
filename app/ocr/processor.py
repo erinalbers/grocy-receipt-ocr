@@ -160,11 +160,13 @@ def parse_receipt(text):
     if store == "Safeway":
         products = parse_safeway_receipt(text)
     elif store == "Albertsons":
-        products = parse_safeway_receipt(text)
+        products = parse_albertsons_receipt(text)
     elif store == "Kroger":
         products = parse_kroger_receipt(text)
     elif store == "WinCo":
         products = parse_winco_receipt(text)
+    elif store == "PetCo":
+        products = parse_petco_receipt(text)
     else:
         # Generic parsing
         products = parse_generic_receipt(text)
@@ -208,57 +210,24 @@ def get_category_mappings_for_store(store):
     return category_mappings.get(store, {})
 
 def parse_winco_receipt(text):
-    products = []
-    lines = text.split('\n')
-    logger.info(f"Processing {len(lines)} lines")
-    for i, line in enumerate(lines):
-        # Look for lines with price patterns
-        line = clean_line(line)
+    pattern = r'^(?P<title>.*)\s+(?P<barcode>\d+)\s+(?P<price>\d*[\.\,]{1}\d{2})\s*[\S]{0,2}$'
+    return generic_no_category_receipt(text, pattern)
 
-        logger.info(f"Line {i}: {line}")
-
-        if len(line) > 3:
-                
-            product_match = re.search(r'^(.*)\s+(\d+)\s+(\d*[\.\,]{1}\d{2})\s*[\S]{0,2}$', line)
-            if product_match:
-                # Extract price
-                price_str = product_match.group(3)
-                try:
-                    price = float(price_str)
-                except ValueError:
-                    logger.info(f"Invalid price: {price_str}")
-                    continue
-                
-                # Extract product name (text before the price)
-                product_name = product_match.group(1)
-                
-                # Skip if product name is too short or empty
-                if len(product_name) < 3:
-                    continue
-                
-                # Look for barcode in adjacent lines
-                barcode = product_match.group(2)
-                
-                logger.info({
-                    'name': product_name,
-                    'price': price,
-                    'barcode': barcode,
-                    'category': None,
-                    'store': 'Safeway',
-                })
-
-                products.append({
-                    'name': product_name,
-                    'price': price,
-                    'barcode': barcode,
-                    'category': None,
-                    'store': 'Safeway',
-                })
-    
-    return products
-
+def parse_petco_receipt(text):
+    pattern = r'^(?P<barcode>\d+)\s+(?P<title>.*)\s+(?P<price>\d*[\.\,]{1}\d{2})\s*[\S]{0,2}$'
+    return generic_no_category_receipt(text, pattern)
 
 def parse_safeway_receipt(text):
+    categories = get_category_mappings_for_store("Safeway")
+    pattern = r'^(?P<barcode>\d+)\s*(?P<title>.*)\s+(?P<full_price>\d+[\.,]+\d{2})\s+(?P<price>\d+[\.,]+\d{2})\s*[5S$]*$'
+    return generic_category_receipt(text, None, categories)
+
+def parse_albertsons_receipt(text):
+    categories = get_category_mappings_for_store("Safeway")
+    pattern = r'^(?P<barcode>\d+)\s*(?P<title>.*)\s+(?P<full_price>\d+[\.,]+\d{2})\s+(?P<price>\d+[\.,]+\d{2})\s*[5S$]*$'
+    return generic_category_receipt(text, None, categories)
+
+def generic_category_receipt(text, pattern, categories):
     """
     Parse Safeway receipt format
     
@@ -277,7 +246,6 @@ def parse_safeway_receipt(text):
 
     current_category = ""
 
-    categories = get_category_mappings_for_store("Safeway")
     logger.info(f"Categories: {categories}")
     
     for i, line in enumerate(lines):
@@ -303,7 +271,7 @@ def parse_safeway_receipt(text):
             if(category_set == True):
                 continue
 
-        product_match = re.search(r'^(\d+)\s*(.*)\s+(\d+[\.,]+\d{2})\s+(\d+[\.,]+\d{2})\s*[5S$]*$', line)
+        product_match = re.search(pattern, line)
         if product_match:
             # Extract price
             price_str = product_match.group(4)
@@ -338,6 +306,56 @@ def parse_safeway_receipt(text):
                 'category': current_category,
                 'store': 'Safeway',
             })
+    
+    return products
+
+def generic_no_category_receipt(text, regexp):
+    products = []
+    lines = text.split('\n')
+    logger.info(f"Processing {len(lines)} lines")
+    for i, line in enumerate(lines):
+        # Look for lines with price patterns
+        line = clean_line(line)
+
+        logger.info(f"Line {i}: {line}")
+
+        if len(line) > 3:
+                
+            product_match = re.search(regexp, line)
+            if product_match:
+                # Extract price
+                price_str = product_match.group('price')
+                try:
+                    price = float(price_str)
+                except ValueError:
+                    logger.info(f"Invalid price: {price_str}")
+                    continue
+                
+                # Extract product name (text before the price)
+                product_name = product_match.group('title')
+                
+                # Skip if product name is too short or empty
+                if len(product_name) < 3:
+                    continue
+                
+                # Look for barcode in adjacent lines
+                barcode = product_match.group('barcode')
+                
+                logger.info({
+                    'name': product_name,
+                    'price': price,
+                    'barcode': barcode,
+                    'category': None,
+                    'store': 'Safeway',
+                })
+
+                products.append({
+                    'name': product_name,
+                    'price': price,
+                    'barcode': barcode,
+                    'category': None,
+                    'store': 'Safeway',
+                })
     
     return products
 
@@ -364,90 +382,6 @@ def parse_kroger_receipt(text):
         pass
     
     return products
-
-def parse_generic_receipt(text):
-    """
-    Parse generic receipt format
-    
-    Args:
-        text: Receipt text
-        
-    Returns:
-        List of dictionaries containing product information
-    """
-    products = []
-    
-    text = remove_header_footer(text, False, False)
-    # Split text into lines
-    lines = text.split('\n')
-
-    
-    logger.info(f"Processing {len(lines)} lines")
-
-    current_category = ""
-
-    categories = get_category_mappings_for_store("Safeway")
-    logger.info(f"Categories: {categories}")
-    
-    for i, line in enumerate(lines):
-        # Look for lines with price patterns
-        line = clean_line(line)
-
-        logger.info(f"Line {i}: {line}")
-
-        if len(line) > 3:
-            category_set = False
-            if categories.get(line) is not None:
-                current_category = categories.get(line)
-                logger.info(f"Found category: {current_category}")
-                category_set = True
-            else:
-                for key, value in categories.items():
-                    # logger.info(f"Checking category: {key} {value} {line}")
-                    if line.startswith(key) == True:
-                        current_category = value
-                        logger.info(f"Found category: {current_category}")
-                        category_set = True
-                        break
-            if(category_set == True):
-                continue
-
-        product_match = re.search(r'^(\d+)\s*(.*)\s+(\d+[\.,]+\d{2})\s+(\d+[\.,]+\d{2})\s*[5S$]*$', line)
-        if product_match:
-            # Extract price
-            price_str = product_match.group(4)
-            try:
-                price = float(price_str)
-            except ValueError:
-                logger.info(f"Invalid price: {price_str}")
-            
-            # Extract product name (text before the price)
-            product_name = product_match.group(2)
-            
-            # Skip if product name is too short or empty
-            if len(product_name) < 3:
-                continue
-            
-            # Look for barcode in adjacent lines
-            barcode = product_match.group(1)
-            
-            logger.info({
-                'name': product_name,
-                'price': price,
-                'barcode': barcode,
-                'category': current_category
-            })
-
-            products.append({
-                'name': product_name,
-                'price': price,
-                'barcode': barcode,
-                'category': current_category,
-                'store': 'Safeway'
-            })
-    
-    return products
-
 
 def remove_header_footer(text, start_marker, end_marker):
     """
