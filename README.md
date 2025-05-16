@@ -70,6 +70,29 @@ You can configure store-specific category mappings in the `config/category_mappi
   }
 }
 ```
+### Custom Processors
+
+You can also add your own custom receipt processors - regular expressions that identify the values in a line in the receipt.
+Create a new file at config/receipt_processors.json, using the file receipt_processors_default.json as an example.
+
+`nano config/receipt_processors.json`
+
+The processor will look for the search string in the receipt, and if it is able to match that string it will test each of the processors. If it finds one that works, it will stop processing and return the product results.
+
+The search string can be any value, for example, the phone number of your favorite store.
+
+If you specify that the receipt has category markers the category_mappings.json file will be checked and category matches will be attempted.
+
+```json
+{
+   "name":"Safeway",
+   "search_string":"SAFEWAY",
+   "has_categories": true,
+   "processors": [
+      "^(?P<barcode>\\d+)\\s*(?P<title>.*)\\s+(?P<full_price>\\d+[\\.,]+\\d{2})\\s+(?P<price>\\d+[\\.,]+\\d{2})\\s*[5S$]*$"
+   ]
+}
+```
 
 ## Usage
 
@@ -77,6 +100,7 @@ You can configure store-specific category mappings in the `config/category_mappi
 2. Review the extracted products
 3. For each product not found in Grocy:
    - Click "Create in Grocy" to add it to your database
+   - Or map it to an existing product, saving the barcode for next time
    - Or click "Skip" to ignore this product
 4. Once all products are processed, proceed to the purchase page
 5. Review the pre-populated purchase entries
