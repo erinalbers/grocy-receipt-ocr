@@ -140,7 +140,7 @@ def preprocess_image(img):
     
     return opening
 
-def parse_receipt(text):
+def parse_receipt(self, text):
     """
     Parse receipt text to extract product information
     
@@ -153,8 +153,14 @@ def parse_receipt(text):
     products = []
     
     # Detect receipt type/store
-    store = detect_store(text)
+    store = self.detect_store(text)
     logger.info(f"Detected store: {store}")
+    
+    if store:    
+        if store.get('has_categories',False) == True:
+            
+            products = self.generic_category_receipt()
+            
     
     # Apply store-specific parsing
     if store == "Safeway":
@@ -169,7 +175,7 @@ def parse_receipt(text):
         products = parse_petco_receipt(text)
     else:
         # Generic parsing
-        products = parse_generic_receipt(text)
+        products = self.parse_generic_receipt(text)
     
     # Add store information to each product
     for product in products:
@@ -223,13 +229,13 @@ def parse_safeway_receipt(text):
     return generic_category_receipt(text, None, categories)
 
 def parse_albertsons_receipt(text):
-    categories = get_category_mappings_for_store("Safeway")
+    categories = get_category_mappings_for_store("Albertsons")
     pattern = r'^(?P<barcode>\d+)\s*(?P<title>.*)\s+(?P<full_price>\d+[\.,]+\d{2})\s+(?P<price>\d+[\.,]+\d{2})\s*[5S$]*$'
     return generic_category_receipt(text, None, categories)
 
 def generic_category_receipt(text, pattern, categories):
     """
-    Parse Safeway receipt format
+    Parse generic receipt format
     
     Args:
         text: Receipt text
@@ -310,6 +316,15 @@ def generic_category_receipt(text, pattern, categories):
     return products
 
 def generic_no_category_receipt(text, regexp):
+    """
+    Parse generic receipt format
+    
+    Args:
+        text: Receipt text
+        
+    Returns:
+        List of dictionaries containing product information
+    """
     products = []
     lines = text.split('\n')
     logger.info(f"Processing {len(lines)} lines")
