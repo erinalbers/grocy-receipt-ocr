@@ -52,7 +52,11 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-4">
-                            <h5 class="card-title"><a href="{{ product_set.product['url'] }}" target="_blank" class="link-secondary link-underline-opacity-25">{{ product_set.product.name }} </a></h5>
+                            <h5 class="card-title">
+                                {% if product_set.product['url'] %}<a href="{{ product_set.product['url'] }}" target="_blank" class="link-secondary link-underline-opacity-25">{% endif %}
+                                    {{ product_set.product.name }}
+                                {% if product_set.product['url'] %}</a>{% endif %}
+                            </h5>
                             <p class="card-text">
                                 {% if product_set.price %}
                                 <span class="badge bg-secondary">${{ "%.2f"|format(product_set.price) }}</span>

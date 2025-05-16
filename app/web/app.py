@@ -10,10 +10,9 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from ocr.processor import process_receipt
-from ocr.processor import extract_products_from_ocr_file
 from grocy.client import GrocyClient
 from utils.logger import get_logger
+from ocr.processor import ReceiptProcessor
 
 # Initialize logger
 logger = get_logger(__name__)
@@ -47,6 +46,8 @@ grocy_client = GrocyClient(
     api_url=os.environ.get('GROCY_API_URL'),
     api_key=os.environ.get('GROCY_API_KEY')
 )
+
+receipt_processor = ReceiptProcessor()
 
 # Load category mappings
 with open('/config/category_mappings.json', 'r') as f:
@@ -89,13 +90,13 @@ def upload_receipt():
             if app.config['USE_QUEUE'] == True:
                 logger.info("Using queue")
                 # Queue OCR processing job
-                job = queue.enqueue(process_receipt, filepath)
+                job = queue.enqueue(receipt_processor.process_receipt, filepath)
                 logger.info(f"OCR job queued with ID: {job.id}")
                 logger.info(queue)
                 return redirect(url_for('processing', job_id=job.id))
             else:
                 logger.info("Not using queue")
-                ocr_file = process_receipt(filepath)
+                ocr_file = receipt_processor.process_receipt(filepath)
                 # products = extract_products_from_ocr_file(ocr_file)
                 logger.info(f"OCR ocr_file: {ocr_file}")
                 # print(products)
@@ -182,8 +183,11 @@ def review(job_id):
         flash('Job not found or still processing')
         return redirect(url_for('index'))
     
-    products = extract_products_from_ocr_file(job.result)
+    products = receipt_processor.extract_products_from_ocr_file(job.result)
+    store = receipt_processor.get_store()
+    
     logger.info(f"Products: {products}")
+    logger.info(f"Store: {store}")
     categories = grocy_client.get_product_categories()
     locations = grocy_client.get_locations()
     quantity_units = grocy_client.get_quantity_units()
@@ -203,7 +207,7 @@ def review(job_id):
             product['in_grocy'] = False
             product['grocy_id'] = None
     
-    return render_template('review.html', products=products, job_id=job_id, categories=categories, locations=locations, quantity_units=quantity_units)
+    return render_template('review.html', products=products, job_id=job_id, categories=categories, locations=locations, quantity_units=quantity_units, store=store)
 
 @app.route('/create-product', methods=['POST'])
 def create_product():
@@ -273,7 +277,7 @@ def purchases(job_id):
         flash('Job not found or still processing')
         return redirect(url_for('index'))
     
-    products = extract_products_from_ocr_file(job.result)
+    products = receipt_processor.extract_products_from_ocr_file(job.result)
     grocy_products = []
     stores = grocy_client.get_shopping_locations()
 
