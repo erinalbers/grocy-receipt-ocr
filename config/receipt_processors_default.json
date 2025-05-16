@@ -1,0 +1,115 @@
+[
+    {
+        "name":"Safeway",
+        "search_string":"SAFEWAY",
+        "has_categories": true,
+        "processors": [
+            "^(?P<barcode>\\d+)\\s*(?P<title>.*)\\s+(?P<full_price>\\d+[\\.,]+\\d{2})\\s+(?P<price>\\d+[\\.,]+\\d{2})\\s*[5S$]*$"
+        ]
+    },
+    {
+        "name":"Albertsons",
+        "search_string":"Albertsons",
+        "has_categories": true,
+        "processors": [
+            "^(?P<barcode>\\d+)\\s*(?P<title>.*)\\s+(?P<full_price>\\d+[\\.,]+\\d{2})\\s+(?P<price>\\d+[\\.,]+\\d{2})\\s*[5S$]*$"
+        ]
+    },
+    {
+        "name":"Winco",
+        "search_string":"Winco",
+        "has_categories": false,
+        "processors": [
+            "^(?P<title>.*)\\s+(?P<barcode>\\d+)\\s+(?P<price>\\d*[\\.\\,]{1}\\d{2})\\s*[\\S]{0,2}$"
+        ]
+    },
+    {
+        "name":"Petco",
+        "search_string":"Petco",
+        "has_categories": false,
+        "processors": [
+            "^(?P<barcode>\\d+)\\s+(?P<title>.*)\\s+(?P<price>\\d*[\\.\\,]{1}\\d{2})\\s*[\\S]{0,2}$"
+        ]
+    },
+    {
+        "name":"Walmart",
+        "search_string":"WALMART",
+        "has_categories": true,
+        "processors": [
+            "^(?P<barcode>\\d+)\\s*(?P<title>.*)\\s+(?P<full_price>\\d+[\\.,]+\\d{2})\\s+(?P<price>\\d+[\\.,]+\\d{2})\\s*[5S$]*$"
+        ]
+    },
+    {
+        "name":"Rite Aid",
+        "search_string":"Rite Aid",
+        "processors": [
+            "^(?P<title>.*)\\s+[$]*(?P<price>\\d*[\\.\\,]{1}\\d{2})\\s*[\\S]{0,2}$"
+        ]
+    },
+    {
+        "name":"Target",
+        "search_string":"TARGET",
+        "has_categories": true,
+        "processors": [
+            "^(?P<barcode>\\d+)\\s*(?P<title>.*)\\s+(?P<full_price>\\d+[\\.,]+\\d{2})\\s+(?P<price>\\d+[\\.,]+\\d{2})\\s*[5S$]*$"
+        ]
+    },
+    {
+        "name":"Costco",
+        "search_string":"COSTCO",
+        "has_categories": true,
+        "processors": [
+            "^(?P<barcode>\\d+)\\s*(?P<title>.*)\\s+(?P<full_price>\\d+[\\.,]+\\d{2})\\s+(?P<price>\\d+[\\.,]+\\d{2})\\s*[5S$]*$"
+        ]
+    },
+    {
+        "name":"Whole Foods",
+        "search_string":"WHOLEFOODS",
+        "has_categories": true,
+        "processors": [
+            "^(?P<barcode>\\d+)\\s*(?P<title>.*)\\s+(?P<full_price>\\d+[\\.,]+\\d{2})\\s+(?P<price>\\d+[\\.,]+\\d{2})\\s*[5S$]*$"
+        ]
+    },
+    {
+        "name":"Trader Joe's",
+        "search_string":"TRADERJOE",
+        "has_categories": true,
+        "processors": [
+            "^(?P<barcode>\\d+)\\s*(?P<title>.*)\\s+(?P<full_price>\\d+[\\.,]+\\d{2})\\s+(?P<price>\\d+[\\.,]+\\d{2})\\s*[5S$]*$"
+        ]
+    },
+    {
+        "name":"Kroger",
+        "search_string":"KROGER",
+        "has_categories": true,
+        "processors": [
+            "^(?P<barcode>\\d+)\\s*(?P<title>.*)\\s+(?P<full_price>\\d+[\\.,]+\\d{2})\\s+(?P<price>\\d+[\\.,]+\\d{2})\\s*[5S$]*$"
+        ]
+    },
+    {
+        "name":"Ralphs",
+        "search_string":"RALPHS",
+        "has_categories": true,
+        "processors": [
+            "^(?P<barcode>\\d+)\\s*(?P<title>.*)\\s+(?P<full_price>\\d+[\\.,]+\\d{2})\\s+(?P<price>\\d+[\\.,]+\\d{2})\\s*[5S$]*$"
+        ]
+    },
+    {
+        "name":"Publix",
+        "search_string":"PUBLIX",
+        "has_categories": true,
+        "processors": [
+            "^(?P<barcode>\\d+)\\s*(?P<title>.*)\\s+(?P<full_price>\\d+[\\.,]+\\d{2})\\s+(?P<price>\\d+[\\.,]+\\d{2})\\s*[5S$]*$"
+        ]
+    },
+    {
+        "name":"Unknown",
+        "search_string":"",
+        "has_categories": false,
+        "processors": [
+            "^(?P<barcode>\\d+)\\s*(?P<title>.*)\\s+(?P<full_price>\\d+[\\.,]+\\d{2})\\s+(?P<price>\\d+[\\.,]+\\d{2})\\s*[5S$]*$"
+        ]
+    }
+]
+    
+    

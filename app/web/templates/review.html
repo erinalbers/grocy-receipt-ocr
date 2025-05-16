@@ -29,12 +29,16 @@
         <div class="mb-4">
             <div class="alert alert-info">
                 <h4 class="alert-heading">Instructions</h4>
+                {% if store %}
+                <p>We have determined that your store is <strong>{{ store['name'] }}</strong>.</p>
+                {% endif %}
                 <p>Review the products extracted from your receipt. For products not found in your Grocy database, you can:</p>
                 <ul>
                     <li>Create the product in Grocy</li>
                     <li>Skip the product if you don't want to add it</li>
                 </ul>
                 <p class="mb-0">Once all products are processed, click "Continue to Purchases" to add the items to your inventory.</p>
+
             </div>
         </div>
         
