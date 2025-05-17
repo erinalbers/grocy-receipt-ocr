@@ -183,7 +183,7 @@ class ReceiptProcessor:
                     continue
                 
                 # Look for barcode in adjacent lines
-                barcode = groupdict.get('barcode','')
+                barcode = groupdict.get('barcode','') or product_name
                 
                 logger.info({
                     'name': product_name,
@@ -235,7 +235,7 @@ class ReceiptProcessor:
                         continue
                     
                     # Look for barcode in adjacent lines
-                    barcode = groupdict.get('barcode','')
+                    barcode = groupdict.get('barcode','') or product_name
                     
                     logger.info({
                         'name': product_name,

@@ -49,9 +49,9 @@
     {
         "name":"Target",
         "search_string":"TARGET",
-        "has_categories": true,
+        "has_categories": false,
         "processors": [
-            "^(?P<barcode>\\d+)\\s*(?P<title>.*)\\s+(?P<full_price>\\d+[\\.,]+\\d{2})\\s+(?P<price>\\d+[\\.,]+\\d{2})\\s*[5S$]*$"
+            "^(?P<barcode>\\d{9})\\s+(?P<title>.+?)\\s+(?:T|FN)\\s+\\$(?P<price>\\d+\\.\\d{2})\\s*\\.{0,1}$"
         ]
     },
     {
@@ -64,10 +64,10 @@
     },
     {
         "name":"Whole Foods",
-        "search_string":"WHOLEFOODS",
+        "search_string":"WHOLE FOODS",
         "has_categories": true,
         "processors": [
-            "^(?P<barcode>\\d+)\\s*(?P<title>.*)\\s+(?P<full_price>\\d+[\\.,]+\\d{2})\\s+(?P<price>\\d+[\\.,]+\\d{2})\\s*[5S$]*$"
+            "^(?P<title>.*)\\s+[$]*(?P<price>\\d*[\\.\\,]{1}\\d{2})\\s*[\\S]{0,2}$"
         ]
     },
     {
