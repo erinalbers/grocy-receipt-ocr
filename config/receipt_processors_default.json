@@ -103,6 +103,14 @@
         ]
     },
     {
+        "name":"Grocery Outlet",
+        "search_string":"GROCERY OUTLET",
+        "has_categories": false,
+        "processors": [
+            "^(?P<title>.*)\\s+(?P<price>\\d+[\\.,]+\\d{2})\\s*[F]*$"
+        ]
+    },
+    {
         "name":"Unknown",
         "search_string":"",
         "has_categories": false,
